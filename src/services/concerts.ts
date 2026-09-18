@@ -59,6 +59,72 @@ export const concerts: ConcertVideo[] = [
     group: '嘉年华II · 南宁站 2026-04-17',
     date: '2026-04-17',
   },
+  {
+    bvid: 'BV1DXdHBQErs',
+    title: '太阳之子 + 惊叹号（Day2 开场 · 全网首发）',
+    group: '嘉年华II · 南宁站 Day2 2026-04-18',
+    date: '2026-04-18',
+  },
+  {
+    bvid: 'BV1Jw5z6LEsA',
+    title: '太阳之子（温州首场）',
+    group: '嘉年华II · 温州站 2026-05-15',
+    date: '2026-05-15',
+  },
+  {
+    bvid: 'BV1Au5f6GEax',
+    title: '告白气球',
+    group: '嘉年华II · 温州站 2026-05-16',
+    date: '2026-05-16',
+  },
+  {
+    bvid: 'BV1Jq5Z6PEhs',
+    title: '说好不哭',
+    group: '嘉年华II · 温州站 2026-05-16',
+    date: '2026-05-16',
+  },
+  {
+    bvid: 'BV1BZLM68EX2',
+    title: '连名带姓（曹阳）',
+    group: '嘉年华II · 温州站 2026-05-16',
+    date: '2026-05-16',
+  },
+  {
+    bvid: 'BV1CPL66dE3A',
+    title: '彩虹',
+    group: '嘉年华II · 温州站 2026-05-16',
+    date: '2026-05-16',
+  },
+  {
+    bvid: 'BV1JhLz6JEqk',
+    title: '一路向北',
+    group: '嘉年华II · 温州站 2026-05-16',
+    date: '2026-05-16',
+  },
+  {
+    bvid: 'BV1waLu6TE4y',
+    title: '分裂（歌迷点歌 · 23场老粉小姑娘）',
+    group: '嘉年华II · 温州站 2026-05-16',
+    date: '2026-05-16',
+  },
+  {
+    bvid: 'BV11bTq6YEja',
+    title: '鸟巢官方官摄集锦（龙拳·北京嘉年华）',
+    group: '嘉年华II · 北京站（鸟巢）2026-06-27',
+    date: '2026-06-27',
+  },
+  {
+    bvid: 'BV158TP69EjA',
+    title: '谁稀罕',
+    group: '嘉年华II · 北京站（鸟巢）2026-06-27',
+    date: '2026-06-27',
+  },
+  {
+    bvid: 'BV1yqTT61EGx',
+    title: '稻香（摇滚版）+ 等你下课',
+    group: '嘉年华II · 北京站（鸟巢）2026-06-27',
+    date: '2026-06-27',
+  },
 ]
 
 /** B 站官方嵌入播放器地址 */
