@@ -61,7 +61,7 @@ function coverStyle(id: string): string {
         </span>
 
         <span class="track-meta">
-          <span class="track-title">{{ track.title }}<span class="tag-sq">SQ</span></span>
+          <span class="track-title">{{ track.title }}</span>
           <span class="track-artist">
             {{ track.artist }}<template v-if="track.album"> · {{ track.album }}</template>
           </span>

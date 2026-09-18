@@ -11,7 +11,6 @@
   --text-secondary: #9a9aa3;
   --border: rgba(255, 255, 255, 0.08);
   --accent: #31c27c;
-  --gold: #d4a94e;
   color-scheme: dark;
 }
 
@@ -234,21 +233,6 @@ body {
   text-overflow: ellipsis;
   display: flex;
   align-items: center;
-}
-
-/* 金色音质标识（装饰性，QQ音乐列表风格） */
-.tag-sq {
-  flex: none;
-  margin-left: 8px;
-  padding: 0 4px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 15px;
-  color: var(--gold);
-  border: 1px solid rgba(212, 169, 78, 0.55);
-  border-radius: 3px;
-  transform: scale(0.92);
-  transform-origin: left center;
 }
 
 .track-artist {
