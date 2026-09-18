@@ -1,3 +1,5 @@
+import type { PlayMode } from '../stores/player'
+
 /** 秒 → "mm:ss" */
 export function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds <= 0) return '00:00'
@@ -14,4 +16,14 @@ export function coverHue(id: string): number {
     hash = (hash * 31 + id.charCodeAt(i)) % 360
   }
   return hash
+}
+
+/** 播放模式的中文标签 */
+export function playModeLabel(mode: PlayMode): string {
+  const labels: Record<PlayMode, string> = {
+    sequence: '顺序播放',
+    'loop-one': '单曲循环',
+    shuffle: '随机播放',
+  }
+  return labels[mode]
 }

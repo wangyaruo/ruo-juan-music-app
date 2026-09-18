@@ -13,7 +13,7 @@ import {
   VolumeHighOutline,
 } from '@vicons/ionicons5'
 import { usePlayerStore } from '../stores/player'
-import { coverHue, formatTime } from '../utils/format'
+import { coverHue, formatTime, playModeLabel } from '../utils/format'
 
 const player = usePlayerStore()
 const { currentTrack, playing, loading, currentTime, duration, volume, playMode } =
@@ -25,14 +25,7 @@ const progress = computed<number>({
   set: (v) => player.seek((v / 100) * duration.value),
 })
 
-const modeLabel = computed(
-  () =>
-    ({
-      sequence: '顺序播放',
-      'loop-one': '单曲循环',
-      shuffle: '随机播放',
-    })[playMode.value],
-)
+const modeLabel = computed(() => playModeLabel(playMode.value))
 
 const npCoverStyle = computed(() => {
   if (!currentTrack.value) return undefined
@@ -55,9 +48,16 @@ const npCoverStyle = computed(() => {
 
     <div class="player-row">
       <div class="now-playing">
-        <img v-if="currentTrack?.cover" :src="currentTrack.cover" class="np-cover" alt="" />
-        <span v-else class="np-cover" :style="npCoverStyle">
-          <n-icon :size="20" color="#fff"><musical-notes-outline /></n-icon>
+        <span
+          class="np-cover-btn"
+          role="button"
+          title="展开播放页"
+          @click="player.openNowPlaying()"
+        >
+          <img v-if="currentTrack?.cover" :src="currentTrack.cover" class="np-cover" alt="" />
+          <span v-else class="np-cover" :style="npCoverStyle">
+            <n-icon :size="20" color="#fff"><musical-notes-outline /></n-icon>
+          </span>
         </span>
         <div class="np-meta">
           <span class="np-title">{{ currentTrack?.title ?? '未在播放' }}</span>

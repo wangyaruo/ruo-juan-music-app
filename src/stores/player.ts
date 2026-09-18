@@ -22,6 +22,8 @@ export const usePlayerStore = defineStore('player', () => {
   const duration = ref(0)
   const volume = ref(0.8)
   const playMode = ref<PlayMode>('sequence')
+  /** 全屏播放页是否展开（UI 状态） */
+  const npOpen = ref(false)
 
   const currentTrack = computed<Track | null>(() =>
     currentIndex.value >= 0 && currentIndex.value < queue.value.length
@@ -118,6 +120,14 @@ export const usePlayerStore = defineStore('player', () => {
     playMode.value = order[(order.indexOf(playMode.value) + 1) % order.length]
   }
 
+  function openNowPlaying(): void {
+    npOpen.value = true
+  }
+
+  function closeNowPlaying(): void {
+    npOpen.value = false
+  }
+
   // ---------- 内部 ----------
   function step(offset: number): void {
     if (queue.value.length === 0) return
@@ -161,6 +171,7 @@ export const usePlayerStore = defineStore('player', () => {
     duration,
     volume,
     playMode,
+    npOpen,
     currentTrack,
     loadQueue,
     playTrack,
@@ -170,5 +181,7 @@ export const usePlayerStore = defineStore('player', () => {
     seek,
     setVolume,
     cycleMode,
+    openNowPlaying,
+    closeNowPlaying,
   }
 })

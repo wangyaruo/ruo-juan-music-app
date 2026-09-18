@@ -1,23 +1,25 @@
 /* ============================================================
-   主题变量：Naive UI 组件走自身主题，自定义区域（列表/播放条）走这里
+   主题变量：Naive UI 组件走自身主题，自定义区域（列表/播放条/播放页）走这里
+   视觉基调对齐 QQ音乐：QQ绿主色 + 干净留白 + 圆角卡片
    ============================================================ */
 :root {
-  --bg: #101014;
-  --bg-elevated: #17171c;
+  --bg: #121216;
+  --bg-elevated: #1a1a20;
   --bg-hover: rgba(255, 255, 255, 0.06);
-  --bg-active: rgba(211, 58, 49, 0.14);
+  --bg-active: rgba(49, 194, 124, 0.13);
   --text: #f2f2f5;
   --text-secondary: #9a9aa3;
   --border: rgba(255, 255, 255, 0.08);
-  --accent: #d33a31;
+  --accent: #31c27c;
+  --gold: #d4a94e;
   color-scheme: dark;
 }
 
 :root[data-theme='light'] {
-  --bg: #f7f7f9;
+  --bg: #f5f5f7;
   --bg-elevated: #ffffff;
   --bg-hover: rgba(0, 0, 0, 0.05);
-  --bg-active: rgba(211, 58, 49, 0.1);
+  --bg-active: rgba(49, 194, 124, 0.12);
   --text: #1f1f24;
   --text-secondary: #7a7a85;
   --border: rgba(0, 0, 0, 0.08);
@@ -47,7 +49,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* 随当前曲目色相变化的氛围微光（固定在视口，不响应事件） */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transition: background 0.6s ease;
+}
+
 .app-shell {
+  position: relative;
+  z-index: 1;
   height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -60,19 +73,70 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border);
 }
 
 .app-title {
   margin: 0;
   font-size: 17px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: linear-gradient(120deg, var(--accent), #25a8b8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .app-main {
   flex: 1;
   min-height: 0; /* 允许内部滚动区收缩 */
+}
+
+/* ============================================================
+   顶部欢迎横幅（QQ音乐推荐页风格）
+   ============================================================ */
+.hero {
+  position: relative;
+  overflow: hidden;
+  margin: 8px 16px 4px;
+  padding: 24px 20px;
+  border-radius: 14px;
+  background: linear-gradient(120deg, #31c27c, #25a8b8);
+  color: #fff;
+}
+
+/* 装饰性光斑 */
+.hero::before,
+.hero::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.hero::before {
+  width: 140px;
+  height: 140px;
+  right: -30px;
+  top: -50px;
+}
+
+.hero::after {
+  width: 90px;
+  height: 90px;
+  right: 90px;
+  bottom: -40px;
+}
+
+.hero-hi {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.hero-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  opacity: 0.85;
 }
 
 /* ============================================================
@@ -93,7 +157,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   user-select: none;
   transition: background 0.15s ease;
@@ -120,15 +184,38 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.track-cover {
+.track-cover-wrap {
+  position: relative;
   flex: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
+  width: 44px;
+  height: 44px;
+}
+
+.track-cover {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   object-fit: cover;
+}
+
+/* 悬停封面时浮出的播放按钮（QQ音乐列表标志性交互） */
+.cover-hover {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.track-row:hover .cover-hover {
+  opacity: 1;
 }
 
 .track-meta {
@@ -136,18 +223,36 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .track-title {
-  font-size: 14px;
+  font-size: 14.5px;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+}
+
+/* 金色音质标识（装饰性，QQ音乐列表风格） */
+.tag-sq {
+  flex: none;
+  margin-left: 8px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 15px;
+  color: var(--gold);
+  border: 1px solid rgba(212, 169, 78, 0.55);
+  border-radius: 3px;
+  transform: scale(0.92);
+  transform-origin: left center;
 }
 
 .track-artist {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -234,11 +339,21 @@ body {
   gap: 10px;
 }
 
-.np-cover {
+.np-cover-btn {
   flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 6px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: transform 0.15s ease;
+}
+
+.np-cover-btn:hover {
+  transform: scale(1.05);
+}
+
+.np-cover {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -279,6 +394,11 @@ body {
 .play-btn {
   width: 44px;
   height: 44px;
+  transition: transform 0.15s ease;
+}
+
+.play-btn:hover {
+  transform: scale(1.06);
 }
 
 /* 单曲循环角标：repeat 图标右上角的小 1 */
@@ -323,6 +443,186 @@ body {
 }
 
 /* ============================================================
+   全屏播放页（QQ音乐播放页风格：氛围渐变 + 旋转黑胶）
+   ============================================================ */
+.np-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 氛围背景：由当前曲目色相驱动的渐变 + 顶部高光 */
+.np-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 55% at 50% -5%, hsl(var(--hue) 55% 42% / 0.55), transparent 70%),
+    linear-gradient(168deg, hsl(var(--hue) 45% 26%), #0b0b10 78%);
+}
+
+.np-close {
+  position: absolute;
+  top: calc(10px + env(safe-area-inset-top));
+  right: 12px;
+  z-index: 2;
+}
+
+.np-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  max-width: 460px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 28px calc(28px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+}
+
+/* 黑胶唱片：外圈纹路 + 中央封面 + 轴心孔，播放时旋转 */
+.disc {
+  position: relative;
+  width: min(64vw, 290px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 6px solid #0a0a0a;
+  background: repeating-radial-gradient(circle at 50% 50%, #101010 0 2px, #1d1d1d 2px 4px);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  animation: disc-rotate 24s linear infinite;
+  animation-play-state: paused;
+}
+
+.disc.spinning {
+  animation-play-state: running;
+}
+
+.disc::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #d8d8d8;
+  border: 3px solid #0c0c0c;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.disc-cover {
+  position: absolute;
+  inset: 19%;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.disc-cover img,
+.disc-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes disc-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.np-info {
+  text-align: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.np-big-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.np-big-artist {
+  margin-top: 6px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.np-progress {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.np-progress-slider {
+  flex: 1;
+}
+
+.np-time {
+  flex: none;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.65);
+  font-variant-numeric: tabular-nums;
+}
+
+.np-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.np-play {
+  width: 62px;
+  height: 62px;
+  transition: transform 0.15s ease;
+}
+
+.np-play:hover {
+  transform: scale(1.06);
+}
+
+.np-volume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.np-volume-slider {
+  width: 76px;
+}
+
+/* 播放页进出动画：上浮 + 淡入 */
+.np-enter-active,
+.np-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.np-enter-from,
+.np-leave-to {
+  opacity: 0;
+  transform: translateY(48px);
+}
+
+/* ============================================================
    移动端适配（<640px）：隐藏音量条，收紧间距
    ============================================================ */
 @media (max-width: 640px) {
@@ -337,5 +637,18 @@ body {
 
   .track-duration {
     display: none;
+  }
+
+  .hero {
+    margin: 8px 12px 4px;
+    padding: 18px 16px;
+  }
+
+  .np-volume {
+    display: none;
+  }
+
+  .np-controls {
+    gap: 14px;
   }
 }
