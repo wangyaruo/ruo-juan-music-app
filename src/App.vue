@@ -11,6 +11,7 @@ import {
 import type { GlobalThemeOverrides } from 'naive-ui'
 import { MoonOutline, SunnyOutline } from '@vicons/ionicons5'
 import TrackList from './components/TrackList.vue'
+import ConcertView from './components/ConcertView.vue'
 import PlayerBar from './components/PlayerBar.vue'
 import NowPlaying from './components/NowPlaying.vue'
 import { usePlayerStore } from './stores/player'
@@ -19,6 +20,9 @@ import { coverHue } from './utils/format'
 const player = usePlayerStore()
 const { currentTrack } = storeToRefs(player)
 const isDark = ref(true)
+
+/** 当前视图：听歌 / 演唱会 */
+const view = ref<'music' | 'concert'>('music')
 
 // Naive UI 主题：暗色用内置 darkTheme，亮色传 null 即默认主题
 const naiveTheme = computed(() => (isDark.value ? darkTheme : null))
@@ -42,6 +46,13 @@ const ambientStyle = computed(() => {
     background: `radial-gradient(58% 42% at 50% 0%, hsl(${h} 60% 45% / 0.18), transparent 72%)`,
   }
 })
+
+/** 切换视图；进入演唱会时暂停音乐，避免与视频声音叠加 */
+function switchView(v: 'music' | 'concert'): void {
+  if (v === view.value) return
+  view.value = v
+  if (v === 'concert') player.pause()
+}
 
 function applyTheme(dark: boolean): void {
   isDark.value = dark
@@ -67,6 +78,18 @@ onMounted(() => {
     <div class="app-shell">
       <header class="app-header">
         <h1 class="app-title">RuoJuan Music</h1>
+        <nav class="view-tabs">
+          <button
+            class="view-tab"
+            :class="{ active: view === 'music' }"
+            @click="switchView('music')"
+          >听歌</button>
+          <button
+            class="view-tab"
+            :class="{ active: view === 'concert' }"
+            @click="switchView('concert')"
+          >演唱会</button>
+        </nav>
         <n-button quaternary circle aria-label="切换明暗主题" @click="toggleTheme">
           <template #icon>
             <n-icon :size="20">
@@ -78,7 +101,8 @@ onMounted(() => {
       </header>
 
       <main class="app-main">
-        <track-list />
+        <track-list v-if="view === 'music'" />
+        <concert-view v-else />
       </main>
 
       <player-bar />

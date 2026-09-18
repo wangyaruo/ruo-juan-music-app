@@ -90,6 +90,11 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
+  /** 仅暂停（切换到演唱会等场景时避免与视频声音叠加） */
+  function pause(): void {
+    audio.pause()
+  }
+
   function next(): void {
     step(1)
   }
@@ -176,6 +181,7 @@ export const usePlayerStore = defineStore('player', () => {
     loadQueue,
     playTrack,
     toggle,
+    pause,
     next,
     prev,
     seek,
