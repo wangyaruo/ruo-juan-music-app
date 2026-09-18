@@ -1,0 +1,14 @@
+/** 一首可播放曲目的最小信息单元 */
+export interface Track {
+  /** 来源内唯一 id */
+  id: string
+  title: string
+  artist: string
+  album?: string
+  /** 音频流地址（在线 URL 或本地 blob URL） */
+  url: string
+  /** 封面图地址；缺省时 UI 使用占位渐变色块 */
+  cover?: string
+  /** 时长（秒）；未知时由音频元数据加载后回填 */
+  duration?: number
+}
