@@ -43,6 +43,14 @@ export const usePlayerStore = defineStore('player', () => {
   const npOpen = ref(false)
   /** 播放队列抽屉是否展开（UI 状态） */
   const queueOpen = ref(false)
+  /** 静音状态（与音量值独立） */
+  const muted = ref(false)
+  /** 已缓冲进度（百分比） */
+  const buffered = ref(0)
+  /** 睡眠定时：到期时间戳（毫秒），null 为未开启 */
+  const sleepAt = ref<number | null>(null)
+  /** 最近播放（最多 20 条，新→旧，localStorage 持久化） */
+  const recent = ref<Track[]>(JSON.parse(localStorage.getItem('rj-recent') ?? '[]') as Track[])
   /** 收藏的曲目 id 集合（localStorage 持久化） */
   const favorites = ref<Set<string>>(
     new Set(JSON.parse(localStorage.getItem('rj-favorites') ?? '[]') as string[]),
@@ -105,6 +113,11 @@ export const usePlayerStore = defineStore('player', () => {
   audio.addEventListener('waiting', () => {
     loading.value = true
   })
+  audio.addEventListener('progress', () => {
+    if (audio.buffered.length > 0 && Number.isFinite(audio.duration) && audio.duration > 0) {
+      buffered.value = (audio.buffered.end(audio.buffered.length - 1) / audio.duration) * 100
+    }
+  })
   audio.addEventListener('ended', onEnded)
 
   // ---------- 系统媒体控制（锁屏 / 控制中心，Media Session API） ----------
@@ -145,8 +158,10 @@ export const usePlayerStore = defineStore('player', () => {
     const track = queue.value[index]
     currentTime.value = 0
     duration.value = track.duration ?? 0
+    buffered.value = 0
     error.value = null
     audio.src = track.url
+    pushRecent(track)
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: track.title,
@@ -202,7 +217,44 @@ export const usePlayerStore = defineStore('player', () => {
   function setVolume(v: number): void {
     volume.value = Math.min(1, Math.max(0, v))
     audio.volume = volume.value
+    // 拖动音量条视为解除静音
+    if (muted.value) {
+      muted.value = false
+      audio.muted = false
+    }
     localStorage.setItem('rj-volume', String(volume.value))
+  }
+
+  /** 静音切换（不改变音量值） */
+  function toggleMute(): void {
+    muted.value = !muted.value
+    audio.muted = muted.value
+  }
+
+  /** 设置睡眠定时（分钟）；传 null 取消。到点自动暂停 */
+  let sleepTimer: ReturnType<typeof setTimeout> | null = null
+
+  function setSleepTimer(minutes: number | null): void {
+    if (sleepTimer) {
+      clearTimeout(sleepTimer)
+      sleepTimer = null
+    }
+    if (minutes === null) {
+      sleepAt.value = null
+      return
+    }
+    sleepAt.value = Date.now() + minutes * 60_000
+    sleepTimer = setTimeout(() => {
+      pause()
+      sleepAt.value = null
+      sleepTimer = null
+    }, minutes * 60_000)
+  }
+
+  /** 记录最近播放（去重、最多 20 条） */
+  function pushRecent(track: Track): void {
+    recent.value = [track, ...recent.value.filter((t) => t.id !== track.id)].slice(0, 20)
+    localStorage.setItem('rj-recent', JSON.stringify(recent.value))
   }
 
   /** 循环切换播放模式：顺序 → 单曲 → 随机 → 顺序 */
@@ -328,6 +380,10 @@ export const usePlayerStore = defineStore('player', () => {
     playMode,
     npOpen,
     queueOpen,
+    muted,
+    buffered,
+    sleepAt,
+    recent,
     favorites,
     currentTrack,
     lyricLines,
@@ -340,6 +396,8 @@ export const usePlayerStore = defineStore('player', () => {
     prev,
     seek,
     setVolume,
+    toggleMute,
+    setSleepTimer,
     cycleMode,
     openNowPlaying,
     closeNowPlaying,

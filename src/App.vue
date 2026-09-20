@@ -54,6 +54,14 @@ function onGlobalKeydown(e: KeyboardEvent): void {
     player.seek(Math.max(0, player.currentTime - 5))
   } else if (e.code === 'ArrowRight') {
     player.seek(player.currentTime + 5)
+  } else if (e.code === 'ArrowUp') {
+    e.preventDefault() // 阻止页面滚动
+    player.setVolume(player.volume + 0.05)
+  } else if (e.code === 'ArrowDown') {
+    e.preventDefault()
+    player.setVolume(player.volume - 0.05)
+  } else if (e.code === 'KeyM') {
+    player.toggleMute()
   }
 }
 

@@ -14,7 +14,7 @@ import { coverGradient, formatTime } from '../utils/format'
 import type { Track } from '../types/track'
 
 const player = usePlayerStore()
-const { queue, currentIndex, playing, loading, favorites } = storeToRefs(player)
+const { queue, currentIndex, playing, loading, favorites, recent } = storeToRefs(player)
 
 /** 按当前时段生成问候语（QQ音乐推荐页风格） */
 const greeting = computed(() => {
@@ -25,8 +25,8 @@ const greeting = computed(() => {
   return '晚上好'
 })
 
-/** 列表过滤：全部 / 我喜欢 */
-const filter = ref<'all' | 'fav'>('all')
+/** 列表过滤：全部 / 我喜欢 / 最近播放 */
+const filter = ref<'all' | 'fav' | 'recent'>('all')
 
 /** 搜索关键词（过滤歌名与歌手） */
 const keyword = ref('')
@@ -39,24 +39,34 @@ interface Entry {
 
 const displayedEntries = computed<Entry[]>(() => {
   let all = queue.value.map((track, index) => ({ track, index }))
-  if (filter.value === 'fav') all = all.filter((e) => favorites.value.has(e.track.id))
+  if (filter.value === 'fav') {
+    all = all.filter((e) => favorites.value.has(e.track.id))
+  } else if (filter.value === 'recent') {
+    // 按最近播放时间排序（recent 新→旧），只保留仍在队列中的
+    const order = new Map(recent.value.map((t, i) => [t.id, i]))
+    all = all
+      .filter((e) => order.has(e.track.id))
+      .sort((a, b) => (order.get(a.track.id) ?? 0) - (order.get(b.track.id) ?? 0))
+  }
   const kw = keyword.value.trim().toLowerCase()
   if (kw) {
     all = all.filter(
-      (e) =>
-        e.track.title.toLowerCase().includes(kw) ||
-        e.track.artist.toLowerCase().includes(kw),
+      (e) => e.track.title.toLowerCase().includes(kw) || e.track.artist.toLowerCase().includes(kw),
     )
   }
   return all
 })
 
-/** 列表为空时的文案（区分无收藏与搜索无结果） */
-const emptyHint = computed(() =>
-  keyword.value.trim()
-    ? { title: '无匹配结果', sub: `没有找到与「${keyword.value.trim()}」相关的曲目` }
-    : { title: '暂无收藏', sub: '点曲目右侧的红心，把喜欢的歌收进来' },
-)
+/** 列表为空时的文案（区分无收藏、无最近播放与搜索无结果） */
+const emptyHint = computed(() => {
+  if (keyword.value.trim()) {
+    return { title: '无匹配结果', sub: `没有找到与「${keyword.value.trim()}」相关的曲目` }
+  }
+  if (filter.value === 'fav') {
+    return { title: '暂无收藏', sub: '点曲目右侧的红心，把喜欢的歌收进来' }
+  }
+  return { title: '暂无最近播放', sub: '播放过的歌曲会出现在这里' }
+})
 </script>
 
 <template>
@@ -80,6 +90,9 @@ const emptyHint = computed(() =>
           </button>
           <button class="chip" :class="{ active: filter === 'fav' }" @click="filter = 'fav'">
             我喜欢
+          </button>
+          <button class="chip" :class="{ active: filter === 'recent' }" @click="filter = 'recent'">
+            最近播放
           </button>
         </div>
         <n-input

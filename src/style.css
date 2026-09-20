@@ -550,6 +550,25 @@ body {
   margin-top: -7px; /* 让滑块轨道压在顶部分界线上 */
 }
 
+.progress-wrap {
+  position: relative;
+  display: block;
+}
+
+/* 缓冲进度带（衬在播放进度轨道下方） */
+.buffer-bar {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  height: 2px;
+  max-width: calc(100% - 24px);
+  border-radius: 1px;
+  background: var(--text-secondary);
+  opacity: 0.3;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
 .player-row {
   display: flex;
   align-items: center;
@@ -666,6 +685,23 @@ body {
 
 .volume-slider {
   width: 90px;
+}
+
+.vol-btn {
+  color: var(--text-secondary);
+}
+
+/* 睡眠定时按钮与剩余时间 */
+.sleep-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sleep-left {
+  font-size: 11px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ============================================================
@@ -918,6 +954,10 @@ body {
    ============================================================ */
 @media (max-width: 640px) {
   .volume {
+    display: none;
+  }
+
+  .time {
     display: none;
   }
 
