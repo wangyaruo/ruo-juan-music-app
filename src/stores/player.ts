@@ -254,6 +254,11 @@ export const usePlayerStore = defineStore('player', () => {
     audio.pause()
   }
 
+  /** 加载失败后重试当前曲目 */
+  function retry(): void {
+    if (currentIndex.value >= 0) playTrack(currentIndex.value)
+  }
+
   function next(): void {
     step(1)
   }
@@ -460,6 +465,7 @@ export const usePlayerStore = defineStore('player', () => {
     playTrack,
     toggle,
     pause,
+    retry,
     next,
     prev,
     seek,

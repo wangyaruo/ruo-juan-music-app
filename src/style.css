@@ -63,6 +63,24 @@ body {
   height: 100dvh;
   display: flex;
   flex-direction: column;
+  /* 超宽屏限宽居中，避免列表被拉成一条线 */
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* 键盘导航的可见焦点环 */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 加载失败提示中的重试按钮布局 */
+.err-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .app-header {
@@ -884,6 +902,37 @@ body {
     flex: 1;
     max-height: 46vh;
     text-align: left;
+  }
+}
+
+/* 矮屏横放（手机横屏）：播放页黑胶与控制区左右排布 */
+@media (orientation: landscape) and (max-height: 540px) {
+  .np-body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    column-gap: 40px;
+    justify-content: center;
+  }
+
+  .np-stage {
+    grid-row: 1 / 4;
+    grid-column: 1;
+  }
+
+  .np-info,
+  .np-progress,
+  .np-controls {
+    grid-column: 2;
+  }
+
+  .disc {
+    width: min(52vh, 200px);
+  }
+
+  /* 矮屏空间有限，隐藏歌词面板 */
+  .lyric-panel {
+    display: none;
   }
 }
 
