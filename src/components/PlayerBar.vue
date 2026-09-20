@@ -13,17 +13,16 @@ import {
   VolumeHighOutline,
 } from '@vicons/ionicons5'
 import { usePlayerStore } from '../stores/player'
+import { useProgressDrag } from '../composables/useProgressDrag'
 import { coverHue, formatTime, playModeLabel } from '../utils/format'
 
 const player = usePlayerStore()
 const { currentTrack, playing, loading, currentTime, duration, volume, playMode } =
   storeToRefs(player)
 
-/** 进度条百分比（双向绑定：拖动即 seek） */
-const progress = computed<number>({
-  get: () => (duration.value > 0 ? (currentTime.value / duration.value) * 100 : 0),
-  set: (v) => player.seek((v / 100) * duration.value),
-})
+/** 进度条（拖动中不回跳，松手才 seek） */
+const { percent: progress, onUpdate: onProgressUpdate, onPointerDown: onProgressDown } =
+  useProgressDrag()
 
 const modeLabel = computed(() => playModeLabel(playMode.value))
 
@@ -38,13 +37,16 @@ const npCoverStyle = computed(() => {
 
 <template>
   <footer class="player-bar">
-    <n-slider
-      v-model:value="progress"
-      :step="0.1"
-      :tooltip="false"
-      :disabled="!currentTrack"
-      class="progress-slider"
-    />
+    <div class="progress-wrap" @pointerdown="onProgressDown">
+      <n-slider
+        :value="progress"
+        :step="0.1"
+        :tooltip="false"
+        :disabled="!currentTrack"
+        class="progress-slider"
+        @update:value="onProgressUpdate"
+      />
+    </div>
 
     <div class="player-row">
       <div class="now-playing">

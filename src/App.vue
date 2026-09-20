@@ -6,6 +6,7 @@ import {
   NConfigProvider,
   NGlobalStyle,
   NIcon,
+  NMessageProvider,
   darkTheme,
 } from 'naive-ui'
 import type { GlobalThemeOverrides } from 'naive-ui'
@@ -14,6 +15,7 @@ import TrackList from './components/TrackList.vue'
 import ConcertView from './components/ConcertView.vue'
 import PlayerBar from './components/PlayerBar.vue'
 import NowPlaying from './components/NowPlaying.vue'
+import ErrorWatcher from './components/ErrorWatcher.vue'
 import { usePlayerStore } from './stores/player'
 import { coverHue } from './utils/format'
 
@@ -74,8 +76,10 @@ onMounted(() => {
 <template>
   <n-config-provider :theme="naiveTheme" :theme-overrides="themeOverrides">
     <n-global-style />
-    <div class="ambient" :style="ambientStyle" aria-hidden="true" />
-    <div class="app-shell">
+    <n-message-provider>
+      <error-watcher />
+      <div class="ambient" :style="ambientStyle" aria-hidden="true" />
+      <div class="app-shell">
       <header class="app-header">
         <h1 class="app-title">RuoJuan Music</h1>
         <nav class="view-tabs">
@@ -107,6 +111,7 @@ onMounted(() => {
 
       <player-bar />
       <now-playing />
-    </div>
+      </div>
+    </n-message-provider>
   </n-config-provider>
 </template>

@@ -18,6 +18,8 @@ export const usePlayerStore = defineStore('player', () => {
   const playing = ref(false)
   /** 网络缓冲中（用于播放按钮的 loading 态） */
   const loading = ref(false)
+  /** 最近一次音频加载失败的提示文案（null 表示无错误） */
+  const error = ref<string | null>(null)
   const currentTime = ref(0)
   const duration = ref(0)
   const volume = ref(0.8)
@@ -53,6 +55,13 @@ export const usePlayerStore = defineStore('player', () => {
     loading.value = true
   })
   audio.addEventListener('ended', onEnded)
+  audio.addEventListener('error', () => {
+    loading.value = false
+    playing.value = false
+    error.value = currentTrack.value
+      ? `《${currentTrack.value.title}》加载失败，请检查网络后重试`
+      : '音频加载失败，请检查网络后重试'
+  })
 
   // ---------- 动作 ----------
   /** 从当前音乐来源加载歌单 */
@@ -68,6 +77,7 @@ export const usePlayerStore = defineStore('player', () => {
     const track = queue.value[index]
     currentTime.value = 0
     duration.value = track.duration ?? 0
+    error.value = null
     audio.src = track.url
     loading.value = true
     void audio.play().catch(() => {
@@ -172,6 +182,7 @@ export const usePlayerStore = defineStore('player', () => {
     currentIndex,
     playing,
     loading,
+    error,
     currentTime,
     duration,
     volume,

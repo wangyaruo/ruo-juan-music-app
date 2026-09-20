@@ -596,7 +596,7 @@ body {
   gap: 10px;
 }
 
-.np-progress-slider {
+.np-progress-wrap {
   flex: 1;
 }
 

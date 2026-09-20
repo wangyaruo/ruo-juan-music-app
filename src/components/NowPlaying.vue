@@ -14,11 +14,16 @@ import {
   VolumeHighOutline,
 } from '@vicons/ionicons5'
 import { usePlayerStore } from '../stores/player'
+import { useProgressDrag } from '../composables/useProgressDrag'
 import { coverHue, formatTime, playModeLabel } from '../utils/format'
 
 const player = usePlayerStore()
 const { currentTrack, playing, currentTime, duration, volume, playMode, npOpen } =
   storeToRefs(player)
+
+/** 进度条（拖动中不回跳，松手才 seek） */
+const { percent: progress, onUpdate: onProgressUpdate, onPointerDown: onProgressDown } =
+  useProgressDrag()
 
 /** 当前曲目封面色相，驱动氛围背景渐变 */
 const hue = computed(() => (currentTrack.value ? coverHue(currentTrack.value.id) : 210))
@@ -28,11 +33,6 @@ const npStyle = computed(() => ({ '--hue': String(hue.value) }))
 const discCoverStyle = computed(() => ({
   background: `linear-gradient(135deg, hsl(${hue.value} 55% 48%), hsl(${(hue.value + 45) % 360} 55% 34%))`,
 }))
-
-const progress = computed<number>({
-  get: () => (duration.value > 0 ? (currentTime.value / duration.value) * 100 : 0),
-  set: (v) => player.seek((v / 100) * duration.value),
-})
 
 const modeLabel = computed(() => playModeLabel(playMode.value))
 
@@ -70,13 +70,16 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
         <div class="np-progress">
           <span class="np-time">{{ formatTime(currentTime) }}</span>
-          <n-slider
-            v-model:value="progress"
-            :step="0.1"
-            :tooltip="false"
-            :disabled="!currentTrack"
-            class="np-progress-slider"
-          />
+          <div class="np-progress-wrap" @pointerdown="onProgressDown">
+            <n-slider
+              :value="progress"
+              :step="0.1"
+              :tooltip="false"
+              :disabled="!currentTrack"
+              class="np-progress-slider"
+              @update:value="onProgressUpdate"
+            />
+          </div>
           <span class="np-time">{{ duration > 0 ? formatTime(duration) : '--:--' }}</span>
         </div>
 
