@@ -318,6 +318,69 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* 收藏心形：未收藏时仅悬停可见，已收藏常显红色 */
+.fav-btn {
+  flex: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.track-row:hover .fav-btn {
+  opacity: 1;
+}
+
+.fav-btn.on {
+  opacity: 1;
+  color: #e04c4c;
+}
+
+.np-fav.on {
+  color: #e04c4c;
+}
+
+/* 列表工具行：过滤 chips + 搜索 */
+.list-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 16px 8px;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.chip {
+  padding: 3px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.chip:hover {
+  color: var(--text);
+}
+
+.chip.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--bg-active);
+}
+
+.track-empty.small {
+  height: auto;
+  padding: 48px 0;
+}
+
 /* 正在播放的均衡器动画 */
 .eq {
   display: inline-flex;

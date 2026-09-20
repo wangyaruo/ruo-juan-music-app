@@ -41,6 +41,10 @@ export const usePlayerStore = defineStore('player', () => {
   )
   /** 全屏播放页是否展开（UI 状态） */
   const npOpen = ref(false)
+  /** 收藏的曲目 id 集合（localStorage 持久化） */
+  const favorites = ref<Set<string>>(
+    new Set(JSON.parse(localStorage.getItem('rj-favorites') ?? '[]') as string[]),
+  )
 
   const currentTrack = computed<Track | null>(() =>
     currentIndex.value >= 0 && currentIndex.value < queue.value.length
@@ -214,6 +218,22 @@ export const usePlayerStore = defineStore('player', () => {
     npOpen.value = false
   }
 
+  // ---------- 收藏 ----------
+  function isFavorite(id: string): boolean {
+    return favorites.value.has(id)
+  }
+
+  function toggleFavorite(id: string): void {
+    const next = new Set(favorites.value)
+    if (next.has(id)) {
+      next.delete(id)
+    } else {
+      next.add(id)
+    }
+    favorites.value = next
+    localStorage.setItem('rj-favorites', JSON.stringify([...next]))
+  }
+
   // ---------- 内部 ----------
   function step(offset: number): void {
     if (queue.value.length === 0) return
@@ -259,6 +279,7 @@ export const usePlayerStore = defineStore('player', () => {
     volume,
     playMode,
     npOpen,
+    favorites,
     currentTrack,
     lyricLines,
     activeLyricIndex,
@@ -273,5 +294,7 @@ export const usePlayerStore = defineStore('player', () => {
     cycleMode,
     openNowPlaying,
     closeNowPlaying,
+    isFavorite,
+    toggleFavorite,
   }
 })

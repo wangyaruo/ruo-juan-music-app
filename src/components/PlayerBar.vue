@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { NButton, NIcon, NSlider, NSpin } from 'naive-ui'
 import {
+  Heart,
+  HeartOutline,
   MusicalNotesOutline,
   PauseOutline,
   PlayBackOutline,
@@ -17,7 +19,7 @@ import { useProgressDrag } from '../composables/useProgressDrag'
 import { coverGradient, formatTime, playModeLabel } from '../utils/format'
 
 const player = usePlayerStore()
-const { currentTrack, playing, loading, currentTime, duration, volume, playMode } =
+const { currentTrack, playing, loading, currentTime, duration, volume, playMode, favorites } =
   storeToRefs(player)
 
 /** 进度条（拖动中不回跳，松手才 seek） */
@@ -64,6 +66,19 @@ const npCoverStyle = computed(() =>
           <span class="np-title">{{ currentTrack?.title ?? '未在播放' }}</span>
           <span class="np-artist">{{ currentTrack?.artist ?? '从列表选一首歌开始' }}</span>
         </div>
+        <n-button
+          text
+          class="np-fav"
+          :class="{ on: currentTrack && favorites.has(currentTrack.id) }"
+          :disabled="!currentTrack"
+          aria-label="收藏"
+          @click="currentTrack && player.toggleFavorite(currentTrack.id)"
+        >
+          <n-icon :size="18">
+            <heart v-if="currentTrack && favorites.has(currentTrack.id)" />
+            <heart-outline v-else />
+          </n-icon>
+        </n-button>
       </div>
 
       <div class="controls">

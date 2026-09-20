@@ -4,6 +4,8 @@ import { storeToRefs } from 'pinia'
 import { NButton, NIcon, NSlider } from 'naive-ui'
 import {
   ChevronDownOutline,
+  Heart,
+  HeartOutline,
   MusicalNotesOutline,
   PauseOutline,
   PlayBackOutline,
@@ -28,6 +30,7 @@ const {
   npOpen,
   lyricLines,
   activeLyricIndex,
+  favorites,
 } = storeToRefs(player)
 
 /** 进度条（拖动中不回跳，松手才 seek） */
@@ -148,6 +151,20 @@ onUnmounted(() => {
         </div>
 
         <div class="np-controls">
+          <n-button
+            text
+            class="np-fav"
+            :class="{ on: currentTrack && favorites.has(currentTrack.id) }"
+            :disabled="!currentTrack"
+            aria-label="收藏"
+            @click="currentTrack && player.toggleFavorite(currentTrack.id)"
+          >
+            <n-icon :size="20" color="#fff">
+              <heart v-if="currentTrack && favorites.has(currentTrack.id)" />
+              <heart-outline v-else />
+            </n-icon>
+          </n-button>
+
           <n-button text :title="modeLabel" @click="player.cycleMode()">
             <n-icon :size="20" color="#fff">
               <shuffle-outline v-if="playMode === 'shuffle'" />
