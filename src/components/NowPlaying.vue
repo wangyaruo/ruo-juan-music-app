@@ -68,6 +68,40 @@ watch(currentTrack, () => {
   lyricPanelRef.value?.scrollTo({ top: 0 })
 })
 
+// ---------- 下滑关闭手势（移动端） ----------
+const swipeY = ref(0)
+let swipeStartY: number | null = null
+
+function onSwipeStart(e: TouchEvent): void {
+  const target = e.target as HTMLElement | null
+  // 歌词面板、进度条、控制区等交互区域不触发关闭手势
+  if (
+    target?.closest('.lyric-panel, .np-progress-wrap, .np-controls, .np-close, button, a, input')
+  ) {
+    swipeStartY = null
+    return
+  }
+  swipeStartY = e.touches[0].clientY
+}
+
+function onSwipeMove(e: TouchEvent): void {
+  if (swipeStartY === null) return
+  swipeY.value = Math.max(0, e.touches[0].clientY - swipeStartY)
+}
+
+function onSwipeEnd(): void {
+  if (swipeY.value > 90) player.closeNowPlaying()
+  swipeY.value = 0
+  swipeStartY = null
+}
+
+/** 手势拖动跟随位移；未拖动时带过渡回弹 */
+const swipeStyle = computed(() =>
+  swipeY.value > 0
+    ? { transform: `translateY(${swipeY.value}px)`, transition: 'none' }
+    : { transition: 'transform 0.2s ease' },
+)
+
 /** 当前曲目封面色相，驱动氛围背景渐变 */
 const hue = computed(() => (currentTrack.value ? coverHue(currentTrack.value.id) : 210))
 
@@ -92,7 +126,14 @@ onUnmounted(() => {
 
 <template>
   <transition name="np">
-    <div v-if="npOpen" class="np-overlay" :style="npStyle">
+    <div
+      v-if="npOpen"
+      class="np-overlay"
+      :style="[npStyle, swipeStyle]"
+      @touchstart.passive="onSwipeStart"
+      @touchmove.passive="onSwipeMove"
+      @touchend="onSwipeEnd"
+    >
       <div class="np-bg" aria-hidden="true" />
 
       <n-button class="np-close" text aria-label="收起播放页" @click="player.closeNowPlaying()">
@@ -102,12 +143,14 @@ onUnmounted(() => {
       <div class="np-body">
         <div class="np-stage" :class="{ 'with-lyrics': lyricLines.length > 0 }">
           <div class="disc" :class="{ spinning: playing }">
-            <div class="disc-cover">
-              <img v-if="currentTrack?.cover" :src="currentTrack.cover" alt="" />
-              <span v-else class="disc-placeholder" :style="discCoverStyle">
-                <n-icon :size="56" color="rgba(255,255,255,.9)"><musical-notes-outline /></n-icon>
-              </span>
-            </div>
+            <transition name="cover-fade" mode="out-in">
+              <div class="disc-cover" :key="currentTrack?.id ?? 'none'">
+                <img v-if="currentTrack?.cover" :src="currentTrack.cover" alt="" />
+                <span v-else class="disc-placeholder" :style="discCoverStyle">
+                  <n-icon :size="56" color="rgba(255,255,255,.9)"><musical-notes-outline /></n-icon>
+                </span>
+              </div>
+            </transition>
           </div>
 
           <div

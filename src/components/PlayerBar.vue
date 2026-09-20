@@ -107,10 +107,18 @@ const sleepLeftText = computed(() => {
           title="展开播放页"
           @click="player.openNowPlaying()"
         >
-          <img v-if="currentTrack?.cover" :src="currentTrack.cover" class="np-cover" alt="" />
-          <span v-else class="np-cover" :style="npCoverStyle">
-            <n-icon :size="20" color="#fff"><musical-notes-outline /></n-icon>
-          </span>
+          <transition name="cover-fade" mode="out-in">
+            <img
+              v-if="currentTrack?.cover"
+              :key="currentTrack.id"
+              :src="currentTrack.cover"
+              class="np-cover"
+              alt=""
+            />
+            <span v-else :key="currentTrack?.id ?? 'none'" class="np-cover" :style="npCoverStyle">
+              <n-icon :size="20" color="#fff"><musical-notes-outline /></n-icon>
+            </span>
+          </transition>
         </span>
         <div class="np-meta">
           <span class="np-title">{{ currentTrack?.title ?? '未在播放' }}</span>

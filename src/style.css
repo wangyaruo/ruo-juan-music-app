@@ -6,7 +6,7 @@
   --bg: #121216;
   --bg-elevated: #1a1a20;
   --bg-hover: rgba(255, 255, 255, 0.06);
-  --bg-active: rgba(49, 194, 124, 0.13);
+  --bg-active: color-mix(in srgb, var(--accent) 13%, transparent);
   --text: #f2f2f5;
   --text-secondary: #9a9aa3;
   --border: rgba(255, 255, 255, 0.08);
@@ -18,7 +18,7 @@
   --bg: #f5f5f7;
   --bg-elevated: #ffffff;
   --bg-hover: rgba(0, 0, 0, 0.05);
-  --bg-active: rgba(49, 194, 124, 0.12);
+  --bg-active: color-mix(in srgb, var(--accent) 12%, transparent);
   --text: #1f1f24;
   --text-secondary: #7a7a85;
   --border: rgba(0, 0, 0, 0.08);
@@ -947,6 +947,50 @@ body {
 .np-leave-to {
   opacity: 0;
   transform: translateY(48px);
+}
+
+/* 切歌封面过渡 */
+.cover-fade-enter-active,
+.cover-fade-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.cover-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.94);
+}
+
+.cover-fade-leave-to {
+  opacity: 0;
+  transform: scale(1.04);
+}
+
+/* 主题色选择面板 */
+.accent-panel {
+  display: flex;
+  gap: 10px;
+  padding: 4px 2px;
+}
+
+.accent-dot {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.accent-dot:hover {
+  transform: scale(1.12);
+}
+
+.accent-dot.active {
+  box-shadow:
+    0 0 0 3px var(--border),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.85);
 }
 
 /* ============================================================

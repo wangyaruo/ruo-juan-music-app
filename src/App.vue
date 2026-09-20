@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { NButton, NConfigProvider, NGlobalStyle, NIcon, NMessageProvider } from 'naive-ui'
-import { MoonOutline, SunnyOutline } from '@vicons/ionicons5'
+import { NButton, NConfigProvider, NGlobalStyle, NIcon, NMessageProvider, NPopover } from 'naive-ui'
+import { ColorPaletteOutline, MoonOutline, SunnyOutline } from '@vicons/ionicons5'
 import TrackList from './components/TrackList.vue'
 import ConcertView from './components/ConcertView.vue'
 import PlayerBar from './components/PlayerBar.vue'
@@ -16,7 +16,8 @@ import { coverHue } from './utils/format'
 const player = usePlayerStore()
 const { currentTrack } = storeToRefs(player)
 
-const { isDark, naiveTheme, themeOverrides, toggleTheme, initTheme } = useTheme()
+const { isDark, accent, ACCENTS, naiveTheme, themeOverrides, toggleTheme, setAccent, initTheme } =
+  useTheme()
 
 /** 当前视图：听歌 / 演唱会 */
 const view = ref<'music' | 'concert'>('music')
@@ -101,6 +102,26 @@ onUnmounted(() => {
               演唱会
             </button>
           </nav>
+          <n-popover trigger="click" :show-arrow="false" raw>
+            <template #trigger>
+              <n-button quaternary circle aria-label="主题色">
+                <template #icon>
+                  <n-icon :size="19"><color-palette-outline /></n-icon>
+                </template>
+              </n-button>
+            </template>
+            <div class="accent-panel">
+              <button
+                v-for="a in ACCENTS"
+                :key="a.color"
+                class="accent-dot"
+                :class="{ active: accent.color === a.color }"
+                :style="{ background: a.color }"
+                :title="a.name"
+                @click="setAccent(a)"
+              />
+            </div>
+          </n-popover>
           <n-button quaternary circle aria-label="切换明暗主题" @click="toggleTheme">
             <template #icon>
               <n-icon :size="20">
