@@ -41,6 +41,8 @@ export const usePlayerStore = defineStore('player', () => {
   )
   /** 全屏播放页是否展开（UI 状态） */
   const npOpen = ref(false)
+  /** 播放队列抽屉是否展开（UI 状态） */
+  const queueOpen = ref(false)
   /** 收藏的曲目 id 集合（localStorage 持久化） */
   const favorites = ref<Set<string>>(
     new Set(JSON.parse(localStorage.getItem('rj-favorites') ?? '[]') as string[]),
@@ -218,7 +220,53 @@ export const usePlayerStore = defineStore('player', () => {
     npOpen.value = false
   }
 
-  // ---------- 收藏 ----------
+  // ---------- 队列管理 ----------
+  /** 从队列移除一曲；若移除的是当前播放曲，改播同位置的下一首（队列为空则停止） */
+  function removeFromQueue(index: number): void {
+    if (index < 0 || index >= queue.value.length) return
+    const wasCurrent = index === currentIndex.value
+    queue.value.splice(index, 1)
+    if (wasCurrent) {
+      if (queue.value.length === 0) {
+        clearQueue()
+      } else {
+        playTrack(Math.min(index, queue.value.length - 1))
+      }
+    } else if (index < currentIndex.value) {
+      currentIndex.value -= 1
+    }
+  }
+
+  /** 清空队列并停止播放 */
+  function clearQueue(): void {
+    queue.value = []
+    currentIndex.value = -1
+    currentTime.value = 0
+    duration.value = 0
+    loading.value = false
+    playing.value = false
+    audio.pause()
+    audio.removeAttribute('src')
+  }
+
+  /** 拖拽排序：把 from 位置的曲目移动到 to 位置，并修正 currentIndex */
+  function moveInQueue(from: number, to: number): void {
+    if (from === to || from < 0 || to < 0 || from >= queue.value.length || to >= queue.value.length)
+      return
+    const [item] = queue.value.splice(from, 1)
+    queue.value.splice(to, 0, item)
+    if (currentIndex.value === from) {
+      currentIndex.value = to
+    } else if (from < currentIndex.value && to >= currentIndex.value) {
+      currentIndex.value -= 1
+    } else if (from > currentIndex.value && to <= currentIndex.value) {
+      currentIndex.value += 1
+    }
+  }
+
+  function openQueue(): void {
+    queueOpen.value = true
+  }
   function isFavorite(id: string): boolean {
     return favorites.value.has(id)
   }
@@ -279,6 +327,7 @@ export const usePlayerStore = defineStore('player', () => {
     volume,
     playMode,
     npOpen,
+    queueOpen,
     favorites,
     currentTrack,
     lyricLines,
@@ -296,5 +345,9 @@ export const usePlayerStore = defineStore('player', () => {
     closeNowPlaying,
     isFavorite,
     toggleFavorite,
+    removeFromQueue,
+    clearQueue,
+    moveInQueue,
+    openQueue,
   }
 })

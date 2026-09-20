@@ -7,6 +7,7 @@ import TrackList from './components/TrackList.vue'
 import ConcertView from './components/ConcertView.vue'
 import PlayerBar from './components/PlayerBar.vue'
 import NowPlaying from './components/NowPlaying.vue'
+import QueueDrawer from './components/QueueDrawer.vue'
 import ErrorWatcher from './components/ErrorWatcher.vue'
 import { usePlayerStore } from './stores/player'
 import { useTheme } from './composables/useTheme'
@@ -109,6 +110,7 @@ onUnmounted(() => {
 
         <player-bar />
         <now-playing />
+        <queue-drawer />
       </div>
     </n-message-provider>
   </n-config-provider>

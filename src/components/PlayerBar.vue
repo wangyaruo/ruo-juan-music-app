@@ -5,6 +5,7 @@ import { NButton, NIcon, NSlider, NSpin } from 'naive-ui'
 import {
   Heart,
   HeartOutline,
+  ListOutline,
   MusicalNotesOutline,
   PauseOutline,
   PlayBackOutline,
@@ -120,6 +121,9 @@ const npCoverStyle = computed(() =>
         <span class="time"
           >{{ formatTime(currentTime) }} / {{ duration > 0 ? formatTime(duration) : '--:--' }}</span
         >
+        <n-button text aria-label="播放队列" title="播放队列" @click="player.openQueue()">
+          <n-icon :size="19"><list-outline /></n-icon>
+        </n-button>
         <div class="volume">
           <n-icon :size="16"><volume-high-outline /></n-icon>
           <n-slider

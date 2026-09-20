@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { NButton, NIcon, NScrollbar } from 'naive-ui'
-import { Heart, HeartOutline, MusicalNotesOutline, PlayOutline } from '@vicons/ionicons5'
+import { NButton, NIcon, NInput, NScrollbar } from 'naive-ui'
+import {
+  Heart,
+  HeartOutline,
+  MusicalNotesOutline,
+  PlayOutline,
+  SearchOutline,
+} from '@vicons/ionicons5'
 import { usePlayerStore } from '../stores/player'
 import { coverGradient, formatTime } from '../utils/format'
 import type { Track } from '../types/track'
@@ -22,6 +28,9 @@ const greeting = computed(() => {
 /** 列表过滤：全部 / 我喜欢 */
 const filter = ref<'all' | 'fav'>('all')
 
+/** 搜索关键词（过滤歌名与歌手） */
+const keyword = ref('')
+
 /** 列表条目：保留其在原队列中的下标，用于点播与高亮 */
 interface Entry {
   track: Track
@@ -29,10 +38,25 @@ interface Entry {
 }
 
 const displayedEntries = computed<Entry[]>(() => {
-  const all = queue.value.map((track, index) => ({ track, index }))
-  if (filter.value === 'fav') return all.filter((e) => favorites.value.has(e.track.id))
+  let all = queue.value.map((track, index) => ({ track, index }))
+  if (filter.value === 'fav') all = all.filter((e) => favorites.value.has(e.track.id))
+  const kw = keyword.value.trim().toLowerCase()
+  if (kw) {
+    all = all.filter(
+      (e) =>
+        e.track.title.toLowerCase().includes(kw) ||
+        e.track.artist.toLowerCase().includes(kw),
+    )
+  }
   return all
 })
+
+/** 列表为空时的文案（区分无收藏与搜索无结果） */
+const emptyHint = computed(() =>
+  keyword.value.trim()
+    ? { title: '无匹配结果', sub: `没有找到与「${keyword.value.trim()}」相关的曲目` }
+    : { title: '暂无收藏', sub: '点曲目右侧的红心，把喜欢的歌收进来' },
+)
 </script>
 
 <template>
@@ -58,11 +82,23 @@ const displayedEntries = computed<Entry[]>(() => {
             我喜欢
           </button>
         </div>
+        <n-input
+          v-model:value="keyword"
+          size="small"
+          round
+          clearable
+          placeholder="搜索歌名 / 歌手"
+          class="search-input"
+        >
+          <template #prefix>
+            <n-icon :size="14"><search-outline /></n-icon>
+          </template>
+        </n-input>
       </div>
 
       <div v-if="displayedEntries.length === 0" class="track-empty small">
-        <p class="track-empty-text">暂无收藏</p>
-        <p class="track-empty-sub">点曲目右侧的红心，把喜欢的歌收进来</p>
+        <p class="track-empty-text">{{ emptyHint.title }}</p>
+        <p class="track-empty-sub">{{ emptyHint.sub }}</p>
       </div>
 
       <ul v-else class="track-list">
