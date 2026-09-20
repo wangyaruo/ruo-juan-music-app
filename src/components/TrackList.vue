@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { NButton, NIcon, NInput, NScrollbar } from 'naive-ui'
 import {
+  AddOutline,
   Heart,
   HeartOutline,
   MusicalNotesOutline,
@@ -67,10 +68,45 @@ const emptyHint = computed(() => {
   }
   return { title: '暂无最近播放', sub: '播放过的歌曲会出现在这里' }
 })
+
+// ---------- 本地文件导入 ----------
+const fileInputRef = ref<HTMLInputElement | null>(null)
+/** 拖拽悬停视觉状态 */
+const dragOver = ref(false)
+
+function onPickFiles(): void {
+  fileInputRef.value?.click()
+}
+
+function onFilesChange(e: Event): void {
+  const input = e.target as HTMLInputElement
+  if (input.files?.length) player.addLocalFiles(Array.from(input.files))
+  input.value = '' // 允许再次选择同一文件（去重由 store 负责）
+}
+
+function onDragOver(): void {
+  dragOver.value = true
+}
+
+function onDragLeave(): void {
+  dragOver.value = false
+}
+
+function onDropFiles(e: DragEvent): void {
+  dragOver.value = false
+  const files = Array.from(e.dataTransfer?.files ?? []).filter((f) => f.type.startsWith('audio/'))
+  if (files.length > 0) player.addLocalFiles(files)
+}
 </script>
 
 <template>
-  <n-scrollbar class="track-scroll">
+  <n-scrollbar
+    class="track-scroll"
+    :class="{ 'drag-over': dragOver }"
+    @dragover.prevent="onDragOver"
+    @dragleave="onDragLeave"
+    @drop.prevent="onDropFiles"
+  >
     <div v-if="queue.length === 0" class="track-empty">
       <n-icon :size="44" class="track-empty-icon"><musical-notes-outline /></n-icon>
       <p class="track-empty-text">歌单为空</p>
@@ -95,18 +131,34 @@ const emptyHint = computed(() => {
             最近播放
           </button>
         </div>
-        <n-input
-          v-model:value="keyword"
-          size="small"
-          round
-          clearable
-          placeholder="搜索歌名 / 歌手"
-          class="search-input"
-        >
-          <template #prefix>
-            <n-icon :size="14"><search-outline /></n-icon>
-          </template>
-        </n-input>
+        <div class="tools-right">
+          <n-button size="small" round tertiary @click="onPickFiles">
+            <template #icon>
+              <n-icon :size="15"><add-outline /></n-icon>
+            </template>
+            导入
+          </n-button>
+          <input
+            ref="fileInputRef"
+            type="file"
+            accept="audio/*"
+            multiple
+            hidden
+            @change="onFilesChange"
+          />
+          <n-input
+            v-model:value="keyword"
+            size="small"
+            round
+            clearable
+            placeholder="搜索歌名 / 歌手"
+            class="search-input"
+          >
+            <template #prefix>
+              <n-icon :size="14"><search-outline /></n-icon>
+            </template>
+          </n-input>
+        </div>
       </div>
 
       <div v-if="displayedEntries.length === 0" class="track-empty small">

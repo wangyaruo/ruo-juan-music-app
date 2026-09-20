@@ -386,6 +386,20 @@ body {
   flex: none;
 }
 
+.tools-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+/* 拖拽导入的悬停提示框 */
+.track-scroll.drag-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: -8px;
+  border-radius: 12px;
+}
+
 /* 播放队列抽屉 */
 .q-header {
   width: 100%;

@@ -2,6 +2,13 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Track } from '../types/track'
 import { createMusicSource } from '../services/source'
+import {
+  clearLocalTracks,
+  deleteLocalTrack,
+  getLocalTracks,
+  saveLocalTrack,
+  updateLocalDuration,
+} from '../services/localFiles'
 import { parseLrc } from '../utils/lrc'
 import type { LyricLine } from '../utils/lrc'
 
@@ -145,10 +152,62 @@ export const usePlayerStore = defineStore('player', () => {
   })
 
   // ---------- 动作 ----------
-  /** 从当前音乐来源加载歌单 */
+  /** 从当前音乐来源加载歌单；随后恢复 IndexedDB 中持久化的本地导入曲目 */
   async function loadQueue(): Promise<void> {
     const source = createMusicSource()
     queue.value = await source.getTracks()
+    try {
+      const locals = await getLocalTracks()
+      for (const rec of locals) {
+        queue.value.push({
+          id: rec.id,
+          title: rec.title,
+          artist: rec.artist,
+          url: URL.createObjectURL(rec.blob),
+          duration: rec.duration,
+          local: true,
+        })
+      }
+    } catch {
+      // IndexedDB 不可用（如隐私模式）时跳过本地恢复，不影响在线歌单
+    }
+  }
+
+  /**
+   * 导入本地音频文件：加入队列、持久化到 IndexedDB、异步读取时长。
+   * 以「文件名+大小」为 id 去重；重复导入同一文件会被忽略。
+   */
+  function addLocalFiles(files: File[]): void {
+    for (const file of files) {
+      if (!file.type.startsWith('audio/')) continue
+      const id = `local-${file.name}-${file.size}`
+      if (queue.value.some((t) => t.id === id)) continue
+
+      const track: Track = {
+        id,
+        title: file.name.replace(/\.[^.]+$/, ''),
+        artist: '本地音乐',
+        url: URL.createObjectURL(file),
+        local: true,
+      }
+      queue.value.push(track)
+      void saveLocalTrack({ id, title: track.title, artist: track.artist as string, blob: file })
+
+      // 时长需读音频元数据，异步回填（队列与 IndexedDB 各一份）
+      const probe = new Audio()
+      probe.preload = 'metadata'
+      probe.src = track.url
+      probe.addEventListener(
+        'loadedmetadata',
+        () => {
+          if (Number.isFinite(probe.duration)) {
+            track.duration = probe.duration
+            void updateLocalDuration(id, probe.duration)
+          }
+        },
+        { once: true },
+      )
+    }
   }
 
   /** 播放队列中指定下标的曲目 */
@@ -273,11 +332,15 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   // ---------- 队列管理 ----------
-  /** 从队列移除一曲；若移除的是当前播放曲，改播同位置的下一首（队列为空则停止） */
+  /** 从队列移除一曲；本地导入曲目联动删除 IndexedDB 记录并回收对象 URL */
   function removeFromQueue(index: number): void {
     if (index < 0 || index >= queue.value.length) return
     const wasCurrent = index === currentIndex.value
-    queue.value.splice(index, 1)
+    const [removed] = queue.value.splice(index, 1)
+    if (removed?.local) {
+      URL.revokeObjectURL(removed.url)
+      void deleteLocalTrack(removed.id)
+    }
     if (wasCurrent) {
       if (queue.value.length === 0) {
         clearQueue()
@@ -289,8 +352,12 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
-  /** 清空队列并停止播放 */
+  /** 清空队列并停止播放；同时清空本地导入的 IndexedDB 记录 */
   function clearQueue(): void {
+    for (const t of queue.value) {
+      if (t.local) URL.revokeObjectURL(t.url)
+    }
+    void clearLocalTracks()
     queue.value = []
     currentIndex.value = -1
     currentTime.value = 0
@@ -389,6 +456,7 @@ export const usePlayerStore = defineStore('player', () => {
     lyricLines,
     activeLyricIndex,
     loadQueue,
+    addLocalFiles,
     playTrack,
     toggle,
     pause,

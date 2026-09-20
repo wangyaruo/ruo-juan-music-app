@@ -13,4 +13,6 @@ export interface Track {
   duration?: number
   /** LRC 格式歌词文本；无歌词的曲目（如纯音乐）省略 */
   lrc?: string
+  /** 是否为用户本地导入的文件（持久化在 IndexedDB，移除时联动删除） */
+  local?: boolean
 }
