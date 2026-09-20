@@ -14,7 +14,7 @@ import {
 } from '@vicons/ionicons5'
 import { usePlayerStore } from '../stores/player'
 import { useProgressDrag } from '../composables/useProgressDrag'
-import { coverHue, formatTime, playModeLabel } from '../utils/format'
+import { coverGradient, formatTime, playModeLabel } from '../utils/format'
 
 const player = usePlayerStore()
 const { currentTrack, playing, loading, currentTime, duration, volume, playMode } =
@@ -26,13 +26,9 @@ const { percent: progress, onUpdate: onProgressUpdate, onPointerDown: onProgress
 
 const modeLabel = computed(() => playModeLabel(playMode.value))
 
-const npCoverStyle = computed(() => {
-  if (!currentTrack.value) return undefined
-  const h = coverHue(currentTrack.value.id)
-  return {
-    background: `linear-gradient(135deg, hsl(${h} 55% 48%), hsl(${(h + 45) % 360} 55% 34%))`,
-  }
-})
+const npCoverStyle = computed(() =>
+  currentTrack.value ? { background: coverGradient(currentTrack.value.id) } : undefined,
+)
 </script>
 
 <template>

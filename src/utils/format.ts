@@ -27,3 +27,13 @@ export function playModeLabel(mode: PlayMode): string {
   }
   return labels[mode]
 }
+
+/** 由色相值生成封面占位渐变（列表封面、播放条封面、黑胶封面共用） */
+export function coverGradientByHue(hue: number): string {
+  return `linear-gradient(135deg, hsl(${hue} 55% 48%), hsl(${(hue + 45) % 360} 55% 34%))`
+}
+
+/** 由曲目 id 生成稳定的封面占位渐变 */
+export function coverGradient(id: string): string {
+  return coverGradientByHue(coverHue(id))
+}
