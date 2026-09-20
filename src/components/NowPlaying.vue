@@ -22,8 +22,11 @@ const { currentTrack, playing, currentTime, duration, volume, playMode, npOpen }
   storeToRefs(player)
 
 /** 进度条（拖动中不回跳，松手才 seek） */
-const { percent: progress, onUpdate: onProgressUpdate, onPointerDown: onProgressDown } =
-  useProgressDrag()
+const {
+  percent: progress,
+  onUpdate: onProgressUpdate,
+  onPointerDown: onProgressDown,
+} = useProgressDrag()
 
 /** 当前曲目封面色相，驱动氛围背景渐变 */
 const hue = computed(() => (currentTrack.value ? coverHue(currentTrack.value.id) : 210))

@@ -47,17 +47,14 @@ const greeting = computed(() => {
               class="eq"
               :class="{ paused: !playing }"
               aria-hidden="true"
-            ><i /><i /><i /></span>
+              ><i /><i /><i
+            /></span>
             <template v-else>{{ i + 1 }}</template>
           </span>
 
           <span class="track-cover-wrap">
             <img v-if="track.cover" :src="track.cover" class="track-cover" alt="" />
-            <span
-              v-else
-              class="track-cover"
-              :style="{ background: coverGradient(track.id) }"
-            >
+            <span v-else class="track-cover" :style="{ background: coverGradient(track.id) }">
               <n-icon :size="18" color="#fff"><musical-notes-outline /></n-icon>
             </span>
             <span class="cover-hover" aria-hidden="true">

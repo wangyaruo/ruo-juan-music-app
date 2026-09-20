@@ -21,8 +21,11 @@ const { currentTrack, playing, loading, currentTime, duration, volume, playMode 
   storeToRefs(player)
 
 /** 进度条（拖动中不回跳，松手才 seek） */
-const { percent: progress, onUpdate: onProgressUpdate, onPointerDown: onProgressDown } =
-  useProgressDrag()
+const {
+  percent: progress,
+  onUpdate: onProgressUpdate,
+  onPointerDown: onProgressDown,
+} = useProgressDrag()
 
 const modeLabel = computed(() => playModeLabel(playMode.value))
 
@@ -99,7 +102,9 @@ const npCoverStyle = computed(() =>
       </div>
 
       <div class="right-side">
-        <span class="time">{{ formatTime(currentTime) }} / {{ duration > 0 ? formatTime(duration) : '--:--' }}</span>
+        <span class="time"
+          >{{ formatTime(currentTime) }} / {{ duration > 0 ? formatTime(duration) : '--:--' }}</span
+        >
         <div class="volume">
           <n-icon :size="16"><volume-high-outline /></n-icon>
           <n-slider

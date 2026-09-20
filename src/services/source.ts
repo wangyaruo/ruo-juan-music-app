@@ -27,11 +27,41 @@ class DemoSource implements MusicSource {
   async getTracks(): Promise<Track[]> {
     const base = 'https://www.soundhelix.com/examples/mp3'
     return [
-      { id: 'demo-1', title: 'SoundHelix Song 1', artist: 'T. Schürger', album: 'Demo', url: `${base}/SoundHelix-Song-1.mp3` },
-      { id: 'demo-2', title: 'SoundHelix Song 2', artist: 'T. Schürger', album: 'Demo', url: `${base}/SoundHelix-Song-2.mp3` },
-      { id: 'demo-3', title: 'SoundHelix Song 3', artist: 'T. Schürger', album: 'Demo', url: `${base}/SoundHelix-Song-3.mp3` },
-      { id: 'demo-4', title: 'SoundHelix Song 4', artist: 'T. Schürger', album: 'Demo', url: `${base}/SoundHelix-Song-4.mp3` },
-      { id: 'demo-5', title: 'SoundHelix Song 5', artist: 'T. Schürger', album: 'Demo', url: `${base}/SoundHelix-Song-5.mp3` },
+      {
+        id: 'demo-1',
+        title: 'SoundHelix Song 1',
+        artist: 'T. Schürger',
+        album: 'Demo',
+        url: `${base}/SoundHelix-Song-1.mp3`,
+      },
+      {
+        id: 'demo-2',
+        title: 'SoundHelix Song 2',
+        artist: 'T. Schürger',
+        album: 'Demo',
+        url: `${base}/SoundHelix-Song-2.mp3`,
+      },
+      {
+        id: 'demo-3',
+        title: 'SoundHelix Song 3',
+        artist: 'T. Schürger',
+        album: 'Demo',
+        url: `${base}/SoundHelix-Song-3.mp3`,
+      },
+      {
+        id: 'demo-4',
+        title: 'SoundHelix Song 4',
+        artist: 'T. Schürger',
+        album: 'Demo',
+        url: `${base}/SoundHelix-Song-4.mp3`,
+      },
+      {
+        id: 'demo-5',
+        title: 'SoundHelix Song 5',
+        artist: 'T. Schürger',
+        album: 'Demo',
+        url: `${base}/SoundHelix-Song-5.mp3`,
+      },
     ]
   }
 }

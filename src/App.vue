@@ -81,12 +81,16 @@ onUnmounted(() => {
               class="view-tab"
               :class="{ active: view === 'music' }"
               @click="switchView('music')"
-            >听歌</button>
+            >
+              听歌
+            </button>
             <button
               class="view-tab"
               :class="{ active: view === 'concert' }"
               @click="switchView('concert')"
-            >演唱会</button>
+            >
+              演唱会
+            </button>
           </nav>
           <n-button quaternary circle aria-label="切换明暗主题" @click="toggleTheme">
             <template #icon>
