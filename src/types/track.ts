@@ -11,4 +11,6 @@ export interface Track {
   cover?: string
   /** 时长（秒）；未知时由音频元数据加载后回填 */
   duration?: number
+  /** LRC 格式歌词文本；无歌词的曲目（如纯音乐）省略 */
+  lrc?: string
 }

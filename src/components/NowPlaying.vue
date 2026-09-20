@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { NButton, NIcon, NSlider } from 'naive-ui'
 import {
@@ -18,8 +18,17 @@ import { useProgressDrag } from '../composables/useProgressDrag'
 import { coverGradientByHue, coverHue, formatTime, playModeLabel } from '../utils/format'
 
 const player = usePlayerStore()
-const { currentTrack, playing, currentTime, duration, volume, playMode, npOpen } =
-  storeToRefs(player)
+const {
+  currentTrack,
+  playing,
+  currentTime,
+  duration,
+  volume,
+  playMode,
+  npOpen,
+  lyricLines,
+  activeLyricIndex,
+} = storeToRefs(player)
 
 /** 进度条（拖动中不回跳，松手才 seek） */
 const {
@@ -27,6 +36,34 @@ const {
   onUpdate: onProgressUpdate,
   onPointerDown: onProgressDown,
 } = useProgressDrag()
+
+// ---------- 歌词面板滚动 ----------
+const lyricPanelRef = ref<HTMLElement | null>(null)
+/** 用户手动滚动中为 true，期间暂停自动跟随 */
+const manualScroll = ref(false)
+let manualTimer: ReturnType<typeof setTimeout> | null = null
+
+function onLyricUserScroll(): void {
+  manualScroll.value = true
+  if (manualTimer) clearTimeout(manualTimer)
+  manualTimer = setTimeout(() => {
+    manualScroll.value = false
+  }, 3000)
+}
+
+// 高亮行变化时自动滚到面板中央（手动滚动期间不打扰）
+watch(activeLyricIndex, (i) => {
+  if (manualScroll.value || i < 0) return
+  const panel = lyricPanelRef.value
+  const el = panel?.children[i] as HTMLElement | undefined
+  el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+})
+
+// 切歌后歌词回到顶部并恢复自动跟随
+watch(currentTrack, () => {
+  manualScroll.value = false
+  lyricPanelRef.value?.scrollTo({ top: 0 })
+})
 
 /** 当前曲目封面色相，驱动氛围背景渐变 */
 const hue = computed(() => (currentTrack.value ? coverHue(currentTrack.value.id) : 210))
@@ -45,6 +82,9 @@ function onKeydown(e: KeyboardEvent): void {
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+onUnmounted(() => {
+  if (manualTimer) clearTimeout(manualTimer)
+})
 </script>
 
 <template>
@@ -57,13 +97,34 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       </n-button>
 
       <div class="np-body">
-        <div class="disc" :class="{ spinning: playing }">
-          <div class="disc-cover">
-            <img v-if="currentTrack?.cover" :src="currentTrack.cover" alt="" />
-            <span v-else class="disc-placeholder" :style="discCoverStyle">
-              <n-icon :size="56" color="rgba(255,255,255,.9)"><musical-notes-outline /></n-icon>
-            </span>
+        <div class="np-stage" :class="{ 'with-lyrics': lyricLines.length > 0 }">
+          <div class="disc" :class="{ spinning: playing }">
+            <div class="disc-cover">
+              <img v-if="currentTrack?.cover" :src="currentTrack.cover" alt="" />
+              <span v-else class="disc-placeholder" :style="discCoverStyle">
+                <n-icon :size="56" color="rgba(255,255,255,.9)"><musical-notes-outline /></n-icon>
+              </span>
+            </div>
           </div>
+
+          <div
+            v-if="lyricLines.length > 0"
+            ref="lyricPanelRef"
+            class="lyric-panel"
+            @wheel.passive="onLyricUserScroll"
+            @touchmove.passive="onLyricUserScroll"
+          >
+            <p
+              v-for="(line, i) in lyricLines"
+              :key="i"
+              class="lyric-line"
+              :class="{ active: i === activeLyricIndex }"
+              @click="player.seek(line.time)"
+            >
+              {{ line.text }}
+            </p>
+          </div>
+          <div v-else-if="currentTrack" class="lyric-none">纯音乐，请欣赏</div>
         </div>
 
         <div class="np-info">

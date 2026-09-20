@@ -2,6 +2,8 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Track } from '../types/track'
 import { createMusicSource } from '../services/source'
+import { parseLrc } from '../utils/lrc'
+import type { LyricLine } from '../utils/lrc'
 
 /** 播放模式：顺序 / 单曲循环 / 随机 */
 export type PlayMode = 'sequence' | 'loop-one' | 'shuffle'
@@ -45,6 +47,34 @@ export const usePlayerStore = defineStore('player', () => {
       ? queue.value[currentIndex.value]
       : null,
   )
+
+  // ---------- 歌词 ----------
+  /** 当前曲目的歌词行（无歌词为空数组） */
+  const lyricLines = computed<LyricLine[]>(() =>
+    currentTrack.value?.lrc ? parseLrc(currentTrack.value.lrc) : [],
+  )
+
+  /** 当前播放位置对应的歌词行下标（第一句之前返回 -1，无歌词返回 -1） */
+  const activeLyricIndex = computed(() => {
+    const lines = lyricLines.value
+    if (lines.length === 0) return -1
+    const t = currentTime.value
+    if (t < lines[0].time) return -1
+    // 二分查找：最后一条 time <= t 的行
+    let lo = 0
+    let hi = lines.length - 1
+    let ans = 0
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1
+      if (lines[mid].time <= t) {
+        ans = mid
+        lo = mid + 1
+      } else {
+        hi = mid - 1
+      }
+    }
+    return ans
+  })
 
   // ---------- 音频引擎（单例） ----------
   const audio = new Audio()
@@ -230,6 +260,8 @@ export const usePlayerStore = defineStore('player', () => {
     playMode,
     npOpen,
     currentTrack,
+    lyricLines,
+    activeLyricIndex,
     loadQueue,
     playTrack,
     toggle,
