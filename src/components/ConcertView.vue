@@ -5,7 +5,10 @@ import { OpenOutline, PlayOutline } from '@vicons/ionicons5'
 import { concerts, bilibiliEmbedUrl, bilibiliPageUrl } from '../services/concerts'
 import type { ConcertVideo } from '../services/concerts'
 
-const selected = ref<ConcertVideo>(concerts[0])
+/** 记住上次观看的视频（刷新后恢复） */
+const selected = ref<ConcertVideo>(
+  concerts.find((c) => c.bvid === localStorage.getItem('rj-concert')) ?? concerts[0],
+)
 const page = ref(1)
 
 const embedUrl = computed(() => bilibiliEmbedUrl(selected.value.bvid, page.value))
@@ -30,6 +33,7 @@ function select(video: ConcertVideo): void {
   if (video.bvid === selected.value.bvid) return
   selected.value = video
   page.value = 1
+  localStorage.setItem('rj-concert', video.bvid)
 }
 </script>
 

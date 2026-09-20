@@ -6,6 +6,14 @@ import { createMusicSource } from '../services/source'
 /** 播放模式：顺序 / 单曲循环 / 随机 */
 export type PlayMode = 'sequence' | 'loop-one' | 'shuffle'
 
+/** 从 localStorage 读取音量，非法值回退 0.8 */
+function loadVolume(): number {
+  const raw = localStorage.getItem('rj-volume')
+  if (raw === null) return 0.8
+  const n = Number(raw)
+  return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 0.8
+}
+
 /**
  * 播放器核心 store。
  * 内部持有唯一的 HTMLAudioElement 实例，把音频事件同步为响应式状态；
@@ -22,8 +30,13 @@ export const usePlayerStore = defineStore('player', () => {
   const error = ref<string | null>(null)
   const currentTime = ref(0)
   const duration = ref(0)
-  const volume = ref(0.8)
-  const playMode = ref<PlayMode>('sequence')
+  const volume = ref(loadVolume())
+  const playMode = ref<PlayMode>(
+    localStorage.getItem('rj-playmode') === 'loop-one' ||
+      localStorage.getItem('rj-playmode') === 'shuffle'
+      ? (localStorage.getItem('rj-playmode') as PlayMode)
+      : 'sequence',
+  )
   /** 全屏播放页是否展开（UI 状态） */
   const npOpen = ref(false)
 
@@ -47,14 +60,33 @@ export const usePlayerStore = defineStore('player', () => {
   audio.addEventListener('playing', () => {
     playing.value = true
     loading.value = false
+    setPlaybackState('playing')
   })
   audio.addEventListener('pause', () => {
     playing.value = false
+    setPlaybackState('paused')
   })
   audio.addEventListener('waiting', () => {
     loading.value = true
   })
   audio.addEventListener('ended', onEnded)
+
+  // ---------- 系统媒体控制（锁屏 / 控制中心，Media Session API） ----------
+  function setPlaybackState(state: MediaSessionPlaybackState): void {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = state
+    }
+  }
+
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => toggle())
+    navigator.mediaSession.setActionHandler('pause', () => pause())
+    navigator.mediaSession.setActionHandler('previoustrack', () => prev())
+    navigator.mediaSession.setActionHandler('nexttrack', () => next())
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      if (typeof details.seekTime === 'number') seek(details.seekTime)
+    })
+  }
   audio.addEventListener('error', () => {
     loading.value = false
     playing.value = false
@@ -79,6 +111,13 @@ export const usePlayerStore = defineStore('player', () => {
     duration.value = track.duration ?? 0
     error.value = null
     audio.src = track.url
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: track.title,
+        artist: track.artist,
+        album: track.album ?? '',
+      })
+    }
     loading.value = true
     void audio.play().catch(() => {
       // 浏览器自动播放限制或加载失败时，回落到未播放状态
@@ -127,12 +166,14 @@ export const usePlayerStore = defineStore('player', () => {
   function setVolume(v: number): void {
     volume.value = Math.min(1, Math.max(0, v))
     audio.volume = volume.value
+    localStorage.setItem('rj-volume', String(volume.value))
   }
 
   /** 循环切换播放模式：顺序 → 单曲 → 随机 → 顺序 */
   function cycleMode(): void {
     const order: PlayMode[] = ['sequence', 'loop-one', 'shuffle']
     playMode.value = order[(order.indexOf(playMode.value) + 1) % order.length]
+    localStorage.setItem('rj-playmode', playMode.value)
   }
 
   function openNowPlaying(): void {

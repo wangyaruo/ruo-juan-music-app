@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import {
   NButton,
@@ -67,9 +67,33 @@ function toggleTheme(): void {
   applyTheme(!isDark.value)
 }
 
+/** 桌面端键盘快捷键：空格播放/暂停，←/→ 快退快进 5 秒 */
+function onGlobalKeydown(e: KeyboardEvent): void {
+  const target = e.target as HTMLElement | null
+  if (!target) return
+  // 输入框 / 可编辑区域 / 滑块聚焦时不拦截，避免与组件自身按键行为冲突
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+    return
+  if (target.closest('.n-slider')) return
+
+  if (e.code === 'Space') {
+    e.preventDefault() // 阻止页面滚动
+    player.toggle()
+  } else if (e.code === 'ArrowLeft') {
+    player.seek(Math.max(0, player.currentTime - 5))
+  } else if (e.code === 'ArrowRight') {
+    player.seek(player.currentTime + 5)
+  }
+}
+
 onMounted(() => {
   applyTheme(localStorage.getItem('rj-theme') !== 'light')
   void player.loadQueue()
+  window.addEventListener('keydown', onGlobalKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onGlobalKeydown)
 })
 </script>
 
